@@ -6,7 +6,7 @@ import network, socket
 from machine import Pin, PWM
 from utime import sleep
 
-ROBOT_NAME = "Robot2"   # Change per robot
+ROBOT_NAME = "Robot00"   # Change per robot
 
 # ----------------------------
 # Wi-Fi setup
@@ -71,11 +71,11 @@ html = f"""
 <!DOCTYPE html>
 <html>
 <head>
-  <title>{ROBOT_NAME} Controller</title>
+  <title>ROBOT00 Controller</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 
   <style>
-    body {{
+    body {
       margin:0;
       padding:0;
       height:100vh;
@@ -90,49 +90,64 @@ html = f"""
       flex-direction:column;
       justify-content:center;
       align-items:center;
-    }}
+    }
 
-    h2 {{
+    h2 {
       text-align:center;
       margin-bottom:20px;
       font-size:26px;
       color:white;
-    }}
+    }
 
-    .control-grid {{
+    .control-grid {
       display:grid;
-      grid-template-columns: 100px 100px 100px;
-      grid-template-rows: 100px 100px 100px;
+      grid-template-columns: 120px 120px 120px;
+      grid-template-rows: 120px 120px 120px;
       gap:20px;
       justify-items:center;
       align-items:center;
-    }}
+    }
 
-    .btn {{
+    .btn {
       width:120px;
       height:120px;
       background:rgba(255,255,255,0.15);
       border:3px solid white;
       border-radius:25px;
-      font-size:44px;
+      font-size:40px;
       color:white;
       display:flex;
       justify-content:center;
       align-items:center;
       touch-action:none;
-    }}
+    }
 
-    .empty {{
-      width:100px;
-      height:100px;
+    .ebtn {
+      width:260px;
+      height:120px;
+      background:red;
+      border:3px solid white;
+      border-radius:25px;
+      font-size:40px;
+      color:white;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      touch-action:none;
+      margin-top:30px;
+    }
+
+    .empty {
+      width:120px;
+      height:120px;
       background:transparent;
-    }}
+    }
   </style>
 </head>
 
 <body>
 
-<h2>{ROBOT_NAME} Mobile Controls </h2>
+<h2>ROBOT00 Controls</h2>
 
 <div class="control-grid">
 
@@ -141,7 +156,7 @@ html = f"""
   <div class="empty"></div>
 
   <div id="leftBtn" class="btn">L</div>
-  <div id="stopBtn" class="btn">STOP</div>
+  <div class="empty"></div>
   <div id="rightBtn" class="btn">R</div>
 
   <div class="empty"></div>
@@ -150,44 +165,47 @@ html = f"""
 
 </div>
 
+<!-- ESTOP button OUTSIDE the grid -->
+<div id="stopBtn" class="ebtn">ESTOP</div>
+
 <script>
 let activeCmd = null;
 let intervalId = null;
 
-function send(cmd) {{
-  fetch(cmd).catch(()=>{{}});
-}}
+function send(cmd) {
+  fetch(cmd).catch(()=>{});
+}
 
-function start(cmd) {{
+function start(cmd) {
   if (activeCmd === cmd) return;
   stop();
   activeCmd = cmd;
   send(cmd);
   intervalId = setInterval(() => send(cmd), 150);
-}}
+}
 
-function stop() {{
+function stop() {
   if (intervalId) clearInterval(intervalId);
   send('/s');
   activeCmd = null;
-}}
+}
 
-function bind(id, cmd) {{
+function bind(id, cmd) {
   let b = document.getElementById(id);
 
-  b.addEventListener("touchstart", e => {{
+  b.addEventListener("touchstart", e => {
     e.preventDefault();
     start(cmd);
-  }});
-  b.addEventListener("touchend", e => {{
+  });
+  b.addEventListener("touchend", e => {
     e.preventDefault();
     stop();
-  }});
+  });
 
   b.addEventListener("mousedown", () => start(cmd));
   b.addEventListener("mouseup", () => stop());
   b.addEventListener("mouseleave", () => stop());
-}}
+}
 
 bind("forwardBtn", "/f");
 bind("backBtn", "/b");
@@ -195,14 +213,15 @@ bind("leftBtn", "/l");
 bind("rightBtn", "/r");
 bind("stopBtn", "/s");
 
-// Keyboard fallback
-document.addEventListener("keydown", e => {{
+// Keyboard controls
+document.addEventListener("keydown", e => {
   if (e.repeat) return;
   if (e.key === "ArrowUp" || e.key === "w") start('/f');
   if (e.key === "ArrowDown" || e.key === "s") start('/b');
   if (e.key === "ArrowLeft" || e.key === "a") start('/l');
   if (e.key === "ArrowRight"|| e.key === "d") start('/r');
-}});
+});
+
 document.addEventListener("keyup", stop);
 </script>
 
@@ -244,4 +263,5 @@ while True:
     cl.send("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n")
     cl.send(html)
     cl.close()
+
 
